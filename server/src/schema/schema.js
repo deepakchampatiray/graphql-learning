@@ -1,56 +1,8 @@
 const graphql = require("graphql");
-const {BookType, allBooks, findBook} = require('./book.type');
-const {AuthorType, allAuthors, findAuthor} = require('./author.type');
-//const _ = require("lodash");
+const {BookType, allBooks, findBook, addBook} = require('./book.type');
+const {AuthorType, allAuthors, findAuthor, addAuthor} = require('./author.type');
 
-const { GraphQLObjectType, GraphQLID, GraphQLSchema, GraphQLList } = graphql;
-
-// const dummyBooks = [
-//     { name: 'Book1', genre: 'Fiction', id: '1', authorId: '1' },
-//     { name: 'Book2', genre: 'Novel', id: '2', authorId: '2' },
-//     { name: 'Book3', genre: 'Fantasy', id: '3', authorId: '1' }
-// ];
-// const dummyAuthors = [
-//     { name: 'Author1', age: 32, id: '1'},
-//     { name: 'Author2', age: 45, id: '2'},
-// ]
-
-// const BookType = new GraphQLObjectType({
-//     name: 'Book',
-//     fields: () => ({
-//         id: {
-//             type: GraphQLID
-//         },
-//         name: {
-//             type: GraphQLString
-//         },
-//         genre: {
-//             type: GraphQLString
-//         },
-//         author: {
-//             type: AuthorType,
-//             resolve(parent, args){
-//                 console.log('Resolving author inside book',parent, args);
-//                 return _.find(dummyAuthors, {id: parent.authorId});
-//             }
-//         }
-//     })
-// });
-
-// const AuthorType = new GraphQLObjectType({
-//     name: 'Author',
-//     fields: ()=>({
-//         id: {type: GraphQLID},
-//         name: {type: GraphQLString},
-//         age: {type: GraphQLInt},
-//         books: {
-//             type: new GraphQLList(BookType),
-//             resolve(parent, args){
-//                 return _.filter(dummyBooks, {authorId: parent.id});
-//             }
-//         }
-//     })
-// })
+const { GraphQLObjectType, GraphQLID, GraphQLSchema, GraphQLList, GraphQLString, GraphQLInt,GraphQLNonNull } = graphql;
 
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType',
@@ -63,10 +15,6 @@ const RootQuery = new GraphQLObjectType({
                 }
             },
             resolve(parent, args) {
-                // // Get book from Database
-                // let book = _.find(dummyBooks, { id: args.id });
-                // console.log(`Arguments ${JSON.stringify(args)}, found book ${JSON.stringify(book)}.`);
-                // return book;
                 return findBook(args.id);
             }
         },
@@ -84,10 +32,6 @@ const RootQuery = new GraphQLObjectType({
                 }
             },
             resolve(parent, args) {
-                // // Get book from Database
-                // let author = _.find(dummyAuthors, { id: args.id });
-                // console.log(`Arguments ${JSON.stringify(args)}, found author ${JSON.stringify(author)}.`);
-                // return author;
                 return findAuthor(args.id);
             }
         },
@@ -101,6 +45,37 @@ const RootQuery = new GraphQLObjectType({
     }
 });
 
+const Mutations = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+        addAuthor: {
+            type: AuthorType,
+            args: {
+                name: {type: new GraphQLNonNull(GraphQLString)},
+                age: {type: new GraphQLNonNull(GraphQLInt)},
+                country: {type: GraphQLString},
+            },
+            resolve: (parent, args) => {
+                return addAuthor(args);
+            }
+        },
+        addBook: {
+            type: BookType,
+            args: {
+                name: {type: new GraphQLNonNull(GraphQLString)},
+                genre: {type: new GraphQLNonNull(GraphQLString)},
+                description: {type: GraphQLString},
+                publication_date: {type: new GraphQLNonNull(GraphQLString)},
+                authorId: {type: new GraphQLNonNull(GraphQLString)},
+            },
+            resolve: (parent, args) => {
+                return addBook(args);
+            }
+        }
+    }
+})
+
 module.exports = new GraphQLSchema({
-    query: RootQuery
+    query: RootQuery,
+    mutation: Mutations
 })
